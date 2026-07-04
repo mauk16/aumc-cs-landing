@@ -61,6 +61,13 @@ Note: puddle/greenery cleanup on photos = pending (v0.2+); v0.1 uses mild contra
 
 ## Changelog
 
+### v0.2.0 — 2026-07-04
+- **Direction change (Asad):** dropped SVG dummy character; journey is now first-person cinematic — visitor experiences the walk through the student's own eyes. Real character (photoshoot / AI-generated stills, centered, world moving behind) planned once Asad supplies imagery.
+- 8 pinned scenes: Gate → Walkway → CS Block → Classroom → Lab → FYP → Convocation → Career
+- Six scenes use real photos (corrected mapping: gate=IMG_8523, walkway=IMG_8527, building=IMG_6912_3, classroom=IMG_6721, lab=IMG_6778, FYP=IMG_6764) with camera pan direction per scene (data-pan) + slow push-in (Ken Burns) + crossfades
+- Convocation & Career are designed panels (gold light rays + rising particles; teal perspective grid + role chips) — swap for real photos when available
+- Programs teaser section with 5 degree chips; scene image preloading; v0.1 asset misidentification fixed (old scene-gate.webp was actually a classroom photo)
+
 ### v0.1 — 2026-07-04
 - Project scaffold: index.html, css/styles.css, js/main.js, assets/
 - Hero: logo, department title, tagline, animated scroll cue
