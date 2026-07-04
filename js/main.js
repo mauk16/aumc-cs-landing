@@ -1,59 +1,63 @@
-/* CS AUMC Landing — v0.2 cinematic scroll engine */
+/* CS AUMC Landing — v0.2.1 walkthrough scroll engine
+   Continuous cross-fade + push-through zoom: scrolling feels like moving forward through campus. */
 (() => {
   const journey = document.getElementById('journey');
-  const sticky  = journey.querySelector('.journey-sticky');
   const scenes  = [...journey.querySelectorAll('.scene')];
   const jpFill  = document.getElementById('jpFill');
   const reduceMotion = matchMedia('(prefers-reduced-motion: reduce)').matches;
   const N = scenes.length;
   journey.style.setProperty('--nscenes', N);
 
-  let ticking = false, activeIdx = -1;
+  const clamp = (v,a,b) => Math.min(b, Math.max(a, v));
+  let ticking = false;
 
   function update() {
     ticking = false;
-    const rect = journey.getBoundingClientRect();
+    const rect  = journey.getBoundingClientRect();
     const total = journey.offsetHeight - innerHeight;
-    const p = Math.min(0.9999, Math.max(0, -rect.top / total));
+    const p = clamp(-rect.top / total, 0, 0.9999);
+    const f = p * N;                    // continuous scene position, e.g. 2.37
 
-    const idx = Math.floor(p * N);          // which scene
-    const t   = (p * N) - idx;              // progress within scene 0→1
+    scenes.forEach((s, i) => {
+      const d = f - i;                  // -∞..: this scene is "ahead"; 0..1 while traversing it
+      const visible = d > -0.5 && d < 1.5;
+      s.classList.toggle('is-visible', visible);
+      if (!visible) { s.style.opacity = 0; return; }
 
-    if (idx !== activeIdx) {
-      scenes.forEach((s,i) => s.classList.toggle('is-active', i === idx));
-      activeIdx = idx;
-    }
+      // Cross-fade: fade in over d ∈ [-0.3,0], full over [0,1], fade out over [1,1.3]
+      let op = 1;
+      if (d < 0)      op = 1 + d / 0.3;
+      else if (d > 1) op = 1 - (d - 1) / 0.3;
+      s.style.opacity = clamp(op, 0, 1).toFixed(3);
+      s.style.zIndex = 1 + i;
 
-    // camera move: slow pan + push-in per scene
-    if (!reduceMotion) {
-      const s = scenes[idx];
-      const bg = s.querySelector('.scene-bg');
-      if (bg) {
-        const pan = s.dataset.pan;
-        const drift = (t - 0.5);
-        let tx = 0, ty = 0;
-        if (pan === 'right') tx =  drift * 5;   // percent
-        if (pan === 'left')  tx = -drift * 5;
-        if (pan === 'up')    ty = -drift * 6;
-        const scale = 1.08 + t * 0.10;          // slow push-in
-        bg.style.transform = `translate(${tx}%, ${ty}%) scale(${scale.toFixed(4)})`;
+      // Camera: push-through. While traversing, slowly move forward; on exit keep pushing so
+      // the scene appears to pass by the viewer.
+      if (!reduceMotion) {
+        const cam = s.querySelector('.scene-cam');
+        if (cam) {
+          const pan = s.dataset.pan || 'none';
+          const t = clamp(d, -0.3, 1.3);
+          let tx = 0, ty = 0;
+          if (pan === 'right') tx =  (t - 0.5) * 4.5;
+          if (pan === 'left')  tx = -(t - 0.5) * 4.5;
+          if (pan === 'up')    ty = -(t - 0.5) * 5.5;
+          const scale = 1.06 + t * 0.16;              // keeps growing through exit = walk-through
+          cam.style.transform = `translate(${tx.toFixed(3)}%, ${ty.toFixed(3)}%) scale(${scale.toFixed(4)})`;
+        }
       }
-    }
+
+      // Caption focus in the heart of the scene
+      s.classList.toggle('is-focus', d > 0.06 && d < 0.94);
+    });
 
     jpFill.style.width = (p * 100).toFixed(2) + '%';
   }
 
-  addEventListener('scroll', () => { if(!ticking){ requestAnimationFrame(update); ticking = true; } }, { passive:true });
+  addEventListener('scroll', () => { if (!ticking) { requestAnimationFrame(update); ticking = true; } }, { passive: true });
   addEventListener('resize', update);
   update();
 
-  // Preload next scene image while idle
-  if ('requestIdleCallback' in window) requestIdleCallback(() => {
-    scenes.forEach(s => {
-      const bg = s.querySelector('.scene-bg');
-      if (!bg) return;
-      const m = getComputedStyle(bg).getPropertyValue('--bg').match(/url\(['"]?(.+?)['"]?\)/);
-      if (m) { const img = new Image(); img.src = m[1]; }
-    });
-  });
+  // Eagerly warm all scene images
+  scenes.forEach(s => { const img = s.querySelector('.scene-img'); if (img && img.loading === 'lazy') { img.loading = 'eager'; } });
 })();

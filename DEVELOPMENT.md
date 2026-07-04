@@ -61,6 +61,13 @@ Note: puddle/greenery cleanup on photos = pending (v0.2+); v0.1 uses mild contra
 
 ## Changelog
 
+### v0.2.1 — 2026-07-04
+- **Fix:** scene photos now use real `<img>` elements (object-fit cover) instead of CSS custom-property backgrounds — the var()-in-shorthand approach rendered as flat color in production
+- **Walkthrough feel:** continuous cross-fade between scenes with push-through zoom (scene keeps scaling as it exits, like walking past it) + directional pan per scene
+- Constant Ken Burns drift on every photo (14–17s alternating) so scenes are alive even when scroll pauses
+- Cinematic vignette + film grain overlay on the journey viewport
+- Captions now trigger at scene center (is-focus) instead of binary active state; all images force-warmed after load
+
 ### v0.2.0 — 2026-07-04
 - **Direction change (Asad):** dropped SVG dummy character; journey is now first-person cinematic — visitor experiences the walk through the student's own eyes. Real character (photoshoot / AI-generated stills, centered, world moving behind) planned once Asad supplies imagery.
 - 8 pinned scenes: Gate → Walkway → CS Block → Classroom → Lab → FYP → Convocation → Career
